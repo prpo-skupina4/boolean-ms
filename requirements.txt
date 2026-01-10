@@ -4,3 +4,6 @@ sqlalchemy
 pydantic[email]
 python-multipart
 httpx
+pytest
+pytest-asyncio
+pytest-cov
