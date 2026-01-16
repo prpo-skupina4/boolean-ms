@@ -20,11 +20,11 @@ class Aktivnost(BaseModel):
 
 
 class Termin(BaseModel):
-    termin_id: int
+    termin_id: Optional[int] = None
     zacetek: time
     dolzina: int
-    dan: int
-    lokacija: str
-    tip: str
+    dan:int
+    lokacija: Optional[str] = None
+    tip: Optional[str] = None
     predmet: Optional[Predmet] = None
     aktivnost: Optional[Aktivnost] = None
