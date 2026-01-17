@@ -74,10 +74,11 @@ class TestMergeOverlappingTerms:
                 aktivnost=None,
             ),
         ]
-        # This test documents that the current implementation has a validation bug
-        # when merging overlapping terms
-        with pytest.raises(Exception):
-            result = merge_overlapping_terms(terms)
+        # The implementation merges overlapping terms into a single term
+        result = merge_overlapping_terms(terms)
+        assert len(result) == 1
+        assert result[0].zacetek == time(8, 0)
+        assert result[0].dan == 1
 
     def test_merge_different_days(self):
         """Test that terms on different days are not merged"""
@@ -163,24 +164,37 @@ class TestMergeOverlappingTerms:
                 aktivnost=None,
             ),
         ]
-        # This test documents that the current implementation has a validation bug
-        # when merging overlapping terms
-        with pytest.raises(Exception):
-            result = merge_overlapping_terms(terms)
+        # The implementation merges all overlapping terms into a single term
+        result = merge_overlapping_terms(terms)
+        assert len(result) == 1
+        assert result[0].zacetek == time(8, 0)
+        assert result[0].dan == 1
 
 
 class TestBoolEndpoint:
     def test_bool_endpoint_validation(self):
         """Test the bool endpoint requires proper query parameters"""
-        # Test without required parameters
-        response = client.get("/bool/get")
+        # Test without required parameters - the endpoint is at /bool/ not /bool/get
+        response = client.get("/bool/")
         assert response.status_code == 422
         
-    def test_bool_endpoint_with_params(self):
+    @patch('api.httpx.AsyncClient')
+    def test_bool_endpoint_with_params(self, mock_client):
         """Test the bool endpoint with query parameters in correct format"""
+        # Create a mock response object (not async)
+        from unittest.mock import Mock
+        mock_response = Mock()
+        mock_response.status_code = 200
+        mock_response.json.return_value = {'termini': []}
+        
+        # Create async client mock
+        mock_async_client = AsyncMock()
+        mock_async_client.__aenter__.return_value = mock_async_client
+        mock_async_client.get.return_value = mock_response
+        mock_client.return_value = mock_async_client
+        
         # The GetCombined model expects user_ids as a list
-        # FastAPI requires JSON body for complex types, not query params
-        response = client.get("/bool/get", params={"user_ids": [1, 2]})
-        # Expecting 422 because the endpoint requires a JSON body with user_ids list
-        # or external service connection issues
-        assert response.status_code in [422, 500]
+        # FastAPI GET endpoints with Pydantic models expect JSON body
+        response = client.request('GET', '/bool/', json={'user_ids': [1, 2]})
+        # Should succeed with mocked external service
+        assert response.status_code == 200
