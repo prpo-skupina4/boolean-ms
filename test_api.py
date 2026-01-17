@@ -1,7 +1,7 @@
 import pytest
 from fastapi.testclient import TestClient
 from datetime import time
-from unittest.mock import AsyncMock, patch
+from unittest.mock import AsyncMock, patch, Mock
 import httpx
 
 from main import app
@@ -182,7 +182,6 @@ class TestBoolEndpoint:
     def test_bool_endpoint_with_params(self, mock_client):
         """Test the bool endpoint with query parameters in correct format"""
         # Create a mock response object (not async)
-        from unittest.mock import Mock
         mock_response = Mock()
         mock_response.status_code = 200
         mock_response.json.return_value = {'termini': []}
