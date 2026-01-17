@@ -13,11 +13,11 @@ def health():
     return {"status": "ok"}
 
 
-@router.post("/")
-async def bool(kosilo: GetCombined) -> list[Termin]:
+@router.get("/")
+async def bool(get: GetCombined) -> list[Termin]:
     async with httpx.AsyncClient(timeout=20.0) as client:
         requests = (
-            client.get(f"{EV_URL}/urniki/{user_id}") for user_id in kosilo.user_ids
+            client.get(f"{EV_URL}/urniki/{user_id}") for user_id in get.user_ids
         )
         responses = await asyncio.gather(*requests)
 
@@ -25,11 +25,12 @@ async def bool(kosilo: GetCombined) -> list[Termin]:
 
     for response in responses:
         if response.status_code != 200:
-            raise HTTPException(status_code=response.status_code, detail="Error fetching data.")
+            raise HTTPException(
+                status_code=response.status_code, detail="Error fetching data."
+            )
         data = response.json()
         raw_terms = data.get("termini", [])
         combined_termini.extend(Termin(**t) for t in raw_terms)
-
 
     return merge_overlapping_terms(combined_termini)
 
