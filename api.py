@@ -13,7 +13,7 @@ def health():
     return {"status": "ok"}
 
 
-@router.get("/")
+@router.post("/")
 async def bool(get: GetCombined) -> list[Termin]:
     async with httpx.AsyncClient(timeout=20.0) as client:
         requests = (
